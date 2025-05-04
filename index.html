@@ -1348,6 +1348,26 @@
         });
     </script>
 
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check if the URL has a hash
+            const hash = window.location.hash;
+        
+            // Look for "#register=" pattern
+            if (hash.startsWith("#register=")) {
+                const productId = hash.split("=")[1];
+        
+                // Find the input field by ID or name
+                const inputField = document.querySelector('input[name="product_id"], #product_id');
+        
+                if (inputField) {
+                    inputField.value = productId;
+                }
+            }
+        });
+    </script>
+    
+
     <div id="scanner-container">
         <video id="scanner-video" playsinline></video>
         <div id="scanner-result">Scanning QR code...</div>
