@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MowDao BioMeister</title>
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --primary-light: #60AD5E;
+            --primary-dark: #005005;
+            --secondary: #F9A825;
+            --background: #F5F5F6;
+            --surface: #FFFFFF;
+            --error: #C62828;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--primary-dark);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo img {
+            height: 40px;
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .logo-subtext {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        /* Main Content Styles */
+        main {
+            flex: 1;
+            max-width: 1000px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: var(--primary-dark);
+            color: white;
+            padding: 1.5rem 2rem;
+            margin-top: auto;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .footer-section h3 {
+            color: white;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* App-specific styles */
+        h2 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 1.8rem;
+        }
+
+        h3 {
+            color: var(--primary-dark);
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-weight: 500;
+            font-size: 1.3rem;
+        }
+
+        .panel {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        /* Battery Indicator */
+        .battery-container {
+            position: relative;
+            width: 100px;
+            height: 40px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-inset);
+        }
+
+        .battery-level {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+            width: 75%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .battery-tip {
+            position: absolute;
+            right: -6px;
+            top: 12px;
+            width: 6px;
+            height: 16px;
+            background: #ddd;
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Health Indicators */
+        .health-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            box-shadow: var(--shadow-inset);
+        }
+
+        .good { background: var(--primary); }
+        .warning { background: var(--secondary); }
+        .bad { background: var(--error); }
+
+        /* Map */
+        #map {
+            height: 300px;
+            background: #e8f5e9;
+            position: relative;
+            margin-top: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-inset);
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        #mower {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-dark);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.3);
+            z-index: 10;
+        }
+
+        #mower::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            top: 4px;
+            left: 4px;
+        }
+
+        .path-point {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            transform: translate(-2px, -2px);
+            z-index: 5;
+        }
+
+        .current-path {
+            background-color: rgba(46, 125, 50, 0.3);
+        }
+
+        /* For the mower direction indicator */
+        #mower-direction {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 10px solid var(--primary-dark);
+            transform-origin: center;
+            z-index: 15;
+        }
+
+        /* Compost Meter */
+        .compost-container {
+            position: relative;
+            height: 24px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-inset);
+            margin: 10px 0;
+        }
+
+        .compost-level {
+            height: 100%;
+            background: linear-gradient(90deg, #A1887F, #5D4037);
+            width: 35%;
+            border-radius: 10px;
+        }
+
+        /* Buttons */
+        button {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            box-shadow: var(--shadow);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button.secondary {
+            background: var(--surface);
+            color: var(--primary);
+            border: 1px solid var(--primary-light);
+        }
+
+        /* Forms */
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        input {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: var(--surface);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+
+        /* Status messages */
+        .status-message {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .status-info {
+            background: #E3F2FD;
+            color: #0D47A1;
+        }
+
+        .status-warning {
+            background: #FFF8E1;
+            color: #FF8F00;
+        }
+
+        .status-error {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        /* Utility classes */
+        .hidden { display: none; }
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: 20px; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+
+        /* Animation for AI decision */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+    /* Header adjustments */
+    header {
+        padding: 0.8rem 1rem;
+    }
+    
+    .header-container {
+        flex-direction: row;
+        gap: 0.5rem;
+        padding: 0;
+    }
+    
+    .logo-text {
+        font-size: 1.2rem;
+    }
+    
+    .logo-subtext {
+        font-size: 0.7rem;
+    }
+    
+    .header-actions {
+        gap: 8px;
+    }
+    
+    .header-actions button {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+    
+    /* Main content adjustments */
+    main {
+        padding: 0 1rem;
+        margin: 1rem auto;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    h3 {
+        font-size: 1.1rem;
+    }
+    
+    .panel {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    /* Status panel adjustments */
+    .status {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    /* Battery indicator */
+    .battery-container {
+        width: 100%;
+        margin-top: 5px;
+    }
+    
+    /* Map adjustments */
+    #map {
+        height: 250px;
+    }
+    
+    /* Form adjustments */
+    .login-form {
+        max-width: 100%;
+    }
+    
+    input, button {
+        padding: 10px 12px;
+    }
+    
+    /* Footer adjustments */
+    footer {
+        padding: 1rem;
+    }
+    
+    .footer-container {
+        gap: 1rem;
+    }
+    
+    .footer-section {
+        min-width: 100%;
+    }
+    
+    .copyright {
+        margin-top: 1rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Button full width on mobile */
+    #start-stop-btn, 
+    .login-form button,
+    .panel button {
+        width: 100%;
+    }
+    
+    /* Health indicators alignment */
+    .panel p {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+    /* Extra small devices (phones, 480px and down) */
+    @media (max-width: 480px) {
+        /* Even more compact header */
+        .logo svg {
+            height: 32px;
+            width: 32px;
+        }
+        
+        .logo-text {
+            font-size: 1rem;
+        }
+        
+        /* Smaller map */
+        #map {
+            height: 200px;
+        }
+        
+        /* More compact panels */
+        .panel {
+            padding: 12px;
+        }
+        
+        /* Adjust battery percentage display */
+        .battery-level {
+            font-size: 0.8rem;
+        }
+        
+        /* Smaller status messages */
+        .status-message {
+            font-size: 0.8rem;
+            padding: 8px 12px;
+        }
+        
+        /* Adjust location text */
+        #location-text {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Orientation-specific adjustments */
+    @media (max-width: 768px) and (orientation: landscape) {
+        /* Better use of horizontal space in landscape */
+        .status {
+            flex-direction: row;
+            align-items: center;
+        }
+        
+        #map {
+            height: 180px;
+        }
+        
+        .panel {
+            padding: 12px;
+        }
+    }
+
+    /* Very large phones (some phablets) */
+    @media (min-width: 481px) and (max-width: 768px) {
+        /* Slightly larger elements for bigger phones */
+        #map {
+            height: 280px;
+        }
+        
+        .panel {
+            padding: 18px;
+        }
+    }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <!-- Placeholder for logo - you can replace with actual image -->
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill="white"/>
+                    <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" fill="#2E7D32"/>
+                    <path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" fill="white"/>
+                </svg>
+                <div>
+                    <div class="logo-text">MowDao BioMeister</div>
+                    <div class="logo-subtext">Smart Lawn Mower & Composter</div>
+                </div>
+            </div>
+            <div class="header-actions" id="header-login-section">
+                <button onclick="showLogin()" class="secondary">Login</button>
+                <button onclick="showRegister()">Register</button>
+            </div>
+            <div class="header-actions hidden" id="header-user-section">
+                <span id="header-username">Welcome, User</span>
+                <button onclick="logout()" class="secondary">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div id="login-screen">
+            <h2>Welcome to MowDao BioMeister</h2>
+            <div class="panel">
+                <div class="login-form">
+                    <input type="text" id="username" placeholder="Username">
+                    <input type="password" id="password" placeholder="Password">
+                    <button onclick="login()">Login</button>
+                    <button onclick="showRegister()" class="secondary">Register</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="register-screen" class="hidden">
+            <h2>Create Account</h2>
+            <div class="panel">
+                <div class="login-form">
+                    <input type="text" id="new-username" placeholder="Username">
+                    <input type="email" id="new-email" placeholder="Email">
+                    <input type="password" id="new-password" placeholder="Password">
+                    <input type="password" id="confirm-password" placeholder="Confirm Password">
+                    <button onclick="register()">Register</button>
+                    <button onclick="showLogin()" class="secondary">Back to Login</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="app-screen" class="hidden">
+            <h2>My MowDao BioMeister</h2>
+            
+            <div class="panel">
+                <div class="status">
+                    <div>
+                        <h3>Status: <span id="mower-status">Idle</span></h3>
+                        <p>Battery: <span id="battery-percent">75</span>%</p>
+                        <div class="battery-container">
+                            <div class="battery-level" id="battery-level">75%</div>
+                            <div class="battery-tip"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <button id="start-stop-btn" onclick="toggleMower()">Start Mowing</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>Machine Health</h3>
+                <p><span class="health-indicator good"></span> Main Motor: <span id="motor-status">OK</span></p>
+                <p><span class="health-indicator good"></span> Blade System: <span id="blade-status">OK</span></p>
+                <p><span class="health-indicator good"></span> Navigation Sensors: <span id="sensor-status">OK</span></p>
+                <p><span class="health-indicator good"></span> AI Processor: <span id="ai-status">OK</span></p>
+            </div>
+
+            <div class="panel">
+                <h3>Live Location</h3>
+                <div id="map">
+                    <div id="mower"></div>
+                </div>
+                <p id="location-text" class="mt-2">Current position: X: 120, Y: 80</p>
+                <div id="ai-decision" class="status-message status-info">AI Status: Ready</div>
+            </div>
+
+            <div class="panel">
+                <h3>Compost Management</h3>
+                <p>Grass collected: <span id="compost-percent">35</span>%</p>
+                <div class="compost-container">
+                    <div class="compost-level" id="compost-level"></div>
+                </div>
+                <p id="compost-status" class="mt-2">Status: Collecting</p>
+                <button onclick="emptyCompost()">Empty Compost</button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>MowDao BioMeister</h3>
+                <p>The smart lawn mower for modern gardens. Autonomous, efficient, and eco-friendly.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Features</a></li>
+                    <li><a href="#">Support</a></li>
+                    <li><a href="#">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <ul class="footer-links">
+                    <li>support@mowdao.com</li>
+                    <li>+60 123-4567</li>
+                    <li>123 Jalan Hijau, Kuala Lumpur</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            &copy; 2025 MowDao Technologies. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // App state
+        let isMowing = false;
+        let mowerPosition = { x: 120, y: 80 };
+        let compostLevel = 35;
+        let batteryLevel = 75;
+        let mowerInterval;
+        let compostInterval;
+        let batteryInterval;
+        let currentUser = null;
+        let pathHistory = [];
+        let currentPath = [];
+        let lastDirection = { x: 0, y: 0 };
+    
+        // Login/Register functions
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username && password) {
+                currentUser = username;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-screen').classList.remove('hidden');
+                document.getElementById('header-login-section').classList.add('hidden');
+                document.getElementById('header-user-section').classList.remove('hidden');
+                document.getElementById('header-username').textContent = `Welcome, ${username}`;
+                startSimulation();
+            } else {
+                alert('Please enter username and password');
+            }
+        }
+    
+        function showRegister() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('register-screen').classList.remove('hidden');
+        }
+        
+        function showLogin() {
+            document.getElementById('register-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+        
+        function register() {
+            const username = document.getElementById('new-username').value;
+            const email = document.getElementById('new-email').value;
+            const password = document.getElementById('new-password').value;
+            const confirm = document.getElementById('confirm-password').value;
+            
+            if (password !== confirm) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            if (username && email && password) {
+                alert('Registration successful! Please login.');
+                showLogin();
+                // Clear form
+                document.getElementById('new-username').value = '';
+                document.getElementById('new-email').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('confirm-password').value = '';
+            } else {
+                alert('Please fill all fields');
+            }
+        }
+        
+        function logout() {
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('header-user-section').classList.add('hidden');
+            document.getElementById('header-login-section').classList.remove('hidden');
+            stopSimulation();
+            currentUser = null;
+        }
+    
+        // Mower functions
+        function toggleMower() {
+            isMowing = !isMowing;
+            const btn = document.getElementById('start-stop-btn');
+            const status = document.getElementById('mower-status');
+            
+            if (isMowing) {
+                btn.textContent = 'Stop Mowing';
+                status.textContent = 'Mowing';
+                startMowerMovement();
+            } else {
+                btn.textContent = 'Start Mowing';
+                status.textContent = 'Idle';
+                stopMowerMovement();
+            }
+        }
+    
+        function updateMowerPosition(directionX, directionY) {
+            const mower = document.getElementById('mower');
+            const map = document.getElementById('map');
+            
+            // Add current position to path history
+            const pathPoint = document.createElement('div');
+            pathPoint.className = 'path-point';
+            pathPoint.style.left = `${mowerPosition.x}px`;
+            pathPoint.style.top = `${mowerPosition.y}px`;
+            
+            // Add to current path (for the current mowing session)
+            currentPath.push(pathPoint);
+            map.appendChild(pathPoint);
+            
+            // Update mower position
+            mower.style.left = `${mowerPosition.x}px`;
+            mower.style.top = `${mowerPosition.y}px`;
+            
+            // Update direction indicator if provided
+            if (directionX !== undefined && directionY !== undefined) {
+                const angle = Math.atan2(directionY, directionX) * 180 / Math.PI + 90;
+                mower.style.transform = `rotate(${angle}deg)`;
+                lastDirection = { x: directionX, y: directionY };
+            }
+            
+            document.getElementById('location-text').textContent = 
+                `Current position: X: ${Math.round(mowerPosition.x)}, Y: ${Math.round(mowerPosition.y)}`;
+        }
+    
+        function startMowerMovement() {
+            // Clear previous path visualization
+            clearCurrentPath();
+            
+            isMowing = true;
+            const btn = document.getElementById('start-stop-btn');
+            const status = document.getElementById('mower-status');
+            btn.textContent = 'Stop Mowing';
+            status.textContent = 'Mowing';
+            
+            let lastX = mowerPosition.x;
+            let lastY = mowerPosition.y;
+            
+            mowerInterval = setInterval(() => {
+                // Calculate direction (more intentional movement)
+                const directionX = (Math.random() * 6 - 3);
+                const directionY = (Math.random() * 6 - 3);
+                
+                // Update position with direction
+                mowerPosition.x += directionX;
+                mowerPosition.y += directionY;
+                
+                // Keep within bounds
+                mowerPosition.x = Math.max(10, Math.min(290, mowerPosition.x));
+                mowerPosition.y = Math.max(10, Math.min(290, mowerPosition.y));
+                
+                // Update position with direction
+                updateMowerPosition(directionX, directionY);
+                
+                // Random obstacle detection (10% chance)
+                if (Math.random() < 0.1) {
+                    detectObstacle();
+                }
+                
+                lastX = mowerPosition.x;
+                lastY = mowerPosition.y;
+            }, 1000);
+            
+            // Simulate battery drain
+            batteryInterval = setInterval(() => {
+                batteryLevel -= 1;
+                if (batteryLevel <= 0) {
+                    batteryLevel = 0;
+                    stopMowerMovement();
+                    document.getElementById('mower-status').textContent = 'Battery Empty';
+                    document.getElementById('start-stop-btn').textContent = 'Start Mowing';
+                    isMowing = false;
+                }
+                updateBattery();
+            }, 3000);
+            
+            // Simulate grass collection
+            compostInterval = setInterval(() => {
+                if (isMowing) {
+                    compostLevel += 2;
+                    if (compostLevel >= 100) {
+                        compostLevel = 100;
+                        document.getElementById('compost-status').textContent = 'Status: FULL - Ready to empty';
+                    }
+                    updateCompost();
+                }
+            }, 5000);
+        }
+    
+        function stopMowerMovement() {
+            clearInterval(mowerInterval);
+            clearInterval(batteryInterval);
+            clearInterval(compostInterval);
+        }
+    
+        function clearCurrentPath() {
+            currentPath.forEach(point => point.remove());
+            currentPath = [];
+        }
+    
+        function startSimulation() {
+            updateBattery();
+            updateCompost();
+            updateMowerPosition(0, 1); // Initialize facing downward
+        }
+    
+        function stopSimulation() {
+            stopMowerMovement();
+            isMowing = false;
+            mowerPosition = { x: 120, y: 80 };
+            compostLevel = 35;
+            batteryLevel = 75;
+            document.getElementById('start-stop-btn').textContent = 'Start Mowing';
+            document.getElementById('mower-status').textContent = 'Idle';
+            clearCurrentPath();
+            updateMowerPosition(0, 1); // Reset position and direction
+        }
+    
+        function updateBattery() {
+            document.getElementById('battery-percent').textContent = batteryLevel;
+            document.getElementById('battery-level').style.width = `${batteryLevel}%`;
+            document.getElementById('battery-level').textContent = `${batteryLevel}%`;
+            
+            // Change color based on level
+            const batteryElement = document.getElementById('battery-level');
+            if (batteryLevel < 20) {
+                batteryElement.style.background = 'linear-gradient(90deg, #F44336, #D32F2F)';
+            } else if (batteryLevel < 50) {
+                batteryElement.style.background = 'linear-gradient(90deg, #FFC107, #FFA000)';
+            } else {
+                batteryElement.style.background = 'linear-gradient(90deg, var(--primary-light), var(--primary))';
+            }
+        }
+    
+        function updateCompost() {
+            document.getElementById('compost-percent').textContent = compostLevel;
+            document.getElementById('compost-level').style.width = `${compostLevel}%`;
+            
+            if (compostLevel >= 90) {
+                document.getElementById('compost-status').textContent = 'Status: Almost Full';
+            } else if (compostLevel >= 100) {
+                document.getElementById('compost-status').textContent = 'Status: FULL - Ready to empty';
+            }
+        }
+    
+        function emptyCompost() {
+            compostLevel = 0;
+            updateCompost();
+            document.getElementById('compost-status').textContent = 'Status: Empty';
+        }
+    
+        function detectObstacle() {
+            const aiStatus = document.getElementById('ai-decision');
+            aiStatus.textContent = '⚠️ Obstacle detected! Rerouting...';
+            aiStatus.className = 'status-message status-warning pulse';
+            
+            // Simulate rerouting by changing direction
+            lastDirection.x = (Math.random() * 6 - 3);
+            lastDirection.y = (Math.random() * 6 - 3);
+            
+            // Simulate rerouting
+            setTimeout(() => {
+                aiStatus.textContent = '✓ New path calculated';
+                aiStatus.className = 'status-message status-info';
+            }, 2000);
+            
+            // Simulate component stress (10% chance)
+            if (Math.random() < 0.1) {
+                const component = Math.floor(Math.random() * 4);
+                const statuses = ['motor-status', 'blade-status', 'sensor-status', 'ai-status'];
+                const indicators = document.querySelectorAll('.health-indicator');
+                
+                document.getElementById(statuses[component]).textContent = 'Degraded';
+                indicators[component].classList.remove('good');
+                indicators[component].classList.add('warning');
+                
+                // Show alert
+                const alertMsg = `Maintenance Alert: ${statuses[component].replace('-', ' ')} performance degraded`;
+                const alertElement = document.createElement('div');
+                alertElement.className = 'status-message status-warning';
+                alertElement.textContent = alertMsg;
+                document.querySelector('.panel:nth-child(2)').prepend(alertElement);
+                
+                // Remove alert after 5 seconds
+                setTimeout(() => {
+                    alertElement.remove();
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
