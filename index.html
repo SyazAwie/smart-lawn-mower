@@ -337,6 +337,14 @@
             border: 1px solid var(--primary-light);
         }
 
+        #start-stop-btn.stop-mode {
+            background: #C62828; /* Using your --error color */
+        }
+
+        #start-stop-btn.stop-mode:hover {
+            background: #B71C1C; /* Darker red on hover */
+        }
+
         /* Forms */
         .login-form {
             display: flex;
@@ -794,10 +802,12 @@
             
             if (isMowing) {
                 btn.textContent = 'Stop Mowing';
+                btn.classList.add('stop-mode'); // Add red class
                 status.textContent = 'Mowing';
                 startMowerMovement();
             } else {
                 btn.textContent = 'Start Mowing';
+                btn.classList.remove('stop-mode'); // Remove red class
                 status.textContent = 'Idle';
                 stopMowerMovement();
             }
@@ -900,6 +910,7 @@
             clearInterval(mowerInterval);
             clearInterval(batteryInterval);
             clearInterval(compostInterval);
+            document.getElementById('start-stop-btn').classList.remove('stop-mode');
         }
     
         function clearCurrentPath() {
@@ -919,10 +930,12 @@
             mowerPosition = { x: 120, y: 80 };
             compostLevel = 35;
             batteryLevel = 75;
-            document.getElementById('start-stop-btn').textContent = 'Start Mowing';
+            const btn = document.getElementById('start-stop-btn');
+            btn.textContent = 'Start Mowing';
+            btn.classList.remove('stop-mode');
             document.getElementById('mower-status').textContent = 'Idle';
             clearCurrentPath();
-            updateMowerPosition(0, 1); // Reset position and direction
+            updateMowerPosition(0, 1);
         }
     
         function updateBattery() {
