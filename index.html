@@ -145,6 +145,57 @@
             opacity: 0.8;
         }
 
+        /* Qr code */
+        .input-with-button {
+            display: flex;
+            gap: 8px;
+        }
+
+        .qr-button {
+            padding: 0 15px;
+            background: var(--primary-light);
+            white-space: nowrap;
+        }
+
+        .qr-button i {
+            margin-right: 5px;
+        }
+
+        #scanner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #scanner-video {
+            width: 90%;
+            max-width: 500px;
+            border: 3px solid white;
+            border-radius: 8px;
+        }
+
+        #scanner-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        #scanner-result {
+            color: white;
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+        }
+
         /* App-specific styles */
         h2 {
             color: var(--primary);
@@ -210,6 +261,15 @@
             height: 16px;
             background: #ddd;
             border-radius: 0 4px 4px 0;
+        }
+
+        #product-id-display {
+            font-weight: bold;
+            color: var(--primary-dark);
+            padding: 8px;
+            background-color: rgba(46, 125, 50, 0.1);
+            border-radius: 4px;
+            display: inline-block;
         }
 
         /* Health Indicators */
@@ -612,7 +672,7 @@
             <div class="header-actions hidden" id="header-user-section">
                 <span id="header-username">Welcome, User</span>
                 <button onclick="logout()" class="secondary">
-                    <i class="las la-sign-out-alt"></i> Logout
+                    <i class="las la-sign-out-alt"></i>
                 </button>
             </div>
         </div>
@@ -637,6 +697,12 @@
                 <div class="login-form">
                     <input type="text" id="new-username" placeholder="Username">
                     <input type="email" id="new-email" placeholder="Email">
+                    <div class="input-with-button">
+                        <input type="text" id="product-id" placeholder="Lawn Mower Product ID">
+                        <button onclick="scanQR()" class="qr-button">
+                            <i class="las la-qrcode"></i> Scan
+                        </button>
+                    </div>
                     <input type="password" id="new-password" placeholder="Password">
                     <input type="password" id="confirm-password" placeholder="Confirm Password">
                     <button onclick="register()">Register</button>
@@ -662,6 +728,12 @@
                         <button id="start-stop-btn" onclick="toggleMower()">Start Mowing</button>
                     </div>
                 </div>
+            </div>
+
+            <div class="panel">
+                <h3>Device Information</h3>
+                <p id="product-id-display">Product ID: Not Connected</p>
+                <p>Firmware Version: 2.1.4</p>
             </div>
 
             <div class="panel">
@@ -735,6 +807,8 @@
         let pathHistory = [];
         let currentPath = [];
         let lastDirection = { x: 0, y: 0 };
+        let scannerActive = false;
+        let scanner = null;
     
         // Login/Register functions
         function login() {
@@ -742,13 +816,23 @@
             const password = document.getElementById('password').value;
             
             if (username && password) {
-                currentUser = username;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-screen').classList.remove('hidden');
-                document.getElementById('header-login-section').classList.add('hidden');
-                document.getElementById('header-user-section').classList.remove('hidden');
-                document.getElementById('header-username').textContent = `Welcome, ${username}`;
-                startSimulation();
+                // In a real app, verify credentials with server
+                const userData = JSON.parse(localStorage.getItem(username));
+                
+                if (userData && userData.password === password) {
+                    currentUser = userData;
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('app-screen').classList.remove('hidden');
+                    document.getElementById('header-login-section').classList.add('hidden');
+                    document.getElementById('header-user-section').classList.remove('hidden');
+                    document.getElementById('header-username').textContent = `Welcome, ${username}`;
+                    
+                    // Display product ID in the app
+                    document.getElementById('product-id-display').textContent = `Product ID: ${userData.productId}`;
+                    startSimulation();
+                } else {
+                    alert('Invalid credentials');
+                }
             } else {
                 alert('Please enter username and password');
             }
@@ -767,6 +851,7 @@
         function register() {
             const username = document.getElementById('new-username').value;
             const email = document.getElementById('new-email').value;
+            const productId = document.getElementById('product-id').value;
             const password = document.getElementById('new-password').value;
             const confirm = document.getElementById('confirm-password').value;
             
@@ -775,17 +860,99 @@
                 return;
             }
             
-            if (username && email && password) {
+            if (username && email && password && productId) {
+                // Store user data with product ID (in a real app, you'd send to server)
+                const userData = {
+                    username,
+                    email,
+                    productId,
+                    password // Note: In production, never store raw passwords
+                };
+                
+                // Save to localStorage for demo purposes
+                localStorage.setItem(username, JSON.stringify(userData));
+                
                 alert('Registration successful! Please login.');
                 showLogin();
                 // Clear form
                 document.getElementById('new-username').value = '';
                 document.getElementById('new-email').value = '';
+                document.getElementById('product-id').value = '';
                 document.getElementById('new-password').value = '';
                 document.getElementById('confirm-password').value = '';
             } else {
                 alert('Please fill all fields');
             }
+        }
+
+        function scanQR() {
+            const scannerContainer = document.getElementById('scanner-container');
+            const video = document.getElementById('scanner-video');
+            const resultDisplay = document.getElementById('scanner-result');
+            
+            scannerContainer.style.display = 'flex';
+            resultDisplay.textContent = 'Scanning QR code...';
+            
+            // Check if scanner is already active
+            if (scannerActive) return;
+            
+            // Use the device's back camera
+            const constraints = {
+                video: {
+                    facingMode: 'environment'
+                }
+            };
+            
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(function(stream) {
+                    video.srcObject = stream;
+                    video.play();
+                    scannerActive = true;
+                    
+                    // Initialize QR scanner
+                    scanner = setInterval(() => {
+                        // In a real app, you would use a QR scanning library here
+                        // For demo purposes, we'll simulate a scan after 2 seconds
+                        if (Math.random() < 0.1) { // 10% chance to "find" a QR per check
+                            const simulatedProductId = "MOW-" + Math.floor(1000 + Math.random() * 9000);
+                            handleScanResult(simulatedProductId);
+                        }
+                    }, 200);
+                })
+                .catch(function(err) {
+                    console.error("Camera error: ", err);
+                    resultDisplay.textContent = 'Could not access camera. Please enter manually.';
+                });
+        }
+
+        function handleScanResult(productId) {
+            stopScanner();
+            document.getElementById('product-id').value = productId;
+            document.getElementById('scanner-result').textContent = `Found: ${productId}`;
+            
+            // Auto-close after 1 second
+            setTimeout(() => {
+                document.getElementById('scanner-container').style.display = 'none';
+            }, 1000);
+        }
+
+        function stopScanner() {
+            const video = document.getElementById('scanner-video');
+            const stream = video.srcObject;
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            
+            video.srcObject = null;
+            scannerActive = false;
+            clearInterval(scanner);
+        }
+
+        function manualInput() {
+            stopScanner();
+            document.getElementById('scanner-container').style.display = 'none';
+            document.getElementById('product-id').focus();
         }
         
         function logout() {
@@ -1013,5 +1180,19 @@
             }
         }
     </script>
+
+    <div id="scanner-container">
+        <video id="scanner-video" playsinline></video>
+        <div id="scanner-result">Scanning QR code...</div>
+        <div id="scanner-controls">
+            <button onclick="stopScanner()" class="secondary">
+                <i class="las la-times"></i> Cancel
+            </button>
+            <button onclick="manualInput()">
+                <i class="las la-keyboard"></i> Manual Input
+            </button>
+        </div>
+    </div>
+
 </body>
 </html>
